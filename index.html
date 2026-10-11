@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akhil — AI Agent Engineering</title>
+    <meta name="description" content="Custom AI agents built with explicit permissions, guardrails, human-in-the-loop approval, and observable execution boundaries.">
+    
+    <!-- Fonts: Inter (Sans) and JetBrains Mono (Monospace) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        teal: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                        },
+                        editorial: '#f8fafc', // slate-50
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Utilities */
+        body {
+            background-color: #f8fafc; /* editorial light */
+            color: #0f172a; /* dark navy */
+        }
+        
+        .thin-border {
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Native Accordion Styling */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        
+        /* Node connection lines for hero diagram */
+        .node-line-v {
+            width: 1px;
+            background: #cbd5e1;
+            position: absolute;
+            z-index: 0;
+        }
+        .node-line-h {
+            height: 1px;
+            background: #cbd5e1;
+            position: absolute;
+            z-index: 0;
+        }
+        .node-box {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Focus states for accessibility */
+        *:focus-visible {
+            outline: 2px solid #0d9488;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-teal-100 selection:text-teal-900 flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <header class="fixed top-0 w-full bg-editorial/90 backdrop-blur-md z-50 thin-border border-b border-t-0 border-l-0 border-r-0">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" class="flex flex-col group focus:outline-none">
+                <span class="font-sans font-semibold text-navy-900 tracking-tight text-lg group-hover:text-teal-700 transition-colors">Akhil</span>
+                <span class="font-mono text-[10px] uppercase tracking-wider text-slate-500">AI Agent Engineering</span>
+            </a>
+            
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="#problem" class="text-sm font-medium text-slate-600 hover:text-navy-900 transition-colors">Approach</a>
+                <a href="#capabilities" class="text-sm font-medium text-slate-600 hover:text-navy-900 transition-colors">Capabilities</a>
+                <a href="#projects" class="text-sm font-medium text-slate-600 hover:text-navy-900 transition-colors">Projects</a>
+                <a href="#faq" class="text-sm font-medium text-slate-600 hover:text-navy-900 transition-colors">FAQ</a>
+                <a href="#contact" class="bg-navy-900 text-white px-5 py-2.5 rounded text-sm font-medium hover:bg-teal-700 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-navy-900">
+                    Discuss Your AI Workflow
+                </a>
+            </nav>
+
+            <!-- Mobile Menu Toggle -->
+            <button id="mobile-menu-btn" class="md:hidden text-slate-600 hover:text-navy-900 p-2" aria-label="Toggle Menu">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Nav Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white thin-border border-b absolute w-full left-0 top-20 shadow-lg">
+            <nav class="flex flex-col px-6 py-4 gap-4">
+                <a href="#problem" class="mobile-link text-sm font-medium text-slate-600">Approach</a>
+                <a href="#capabilities" class="mobile-link text-sm font-medium text-slate-600">Capabilities</a>
+                <a href="#projects" class="mobile-link text-sm font-medium text-slate-600">Projects</a>
+                <a href="#faq" class="mobile-link text-sm font-medium text-slate-600">FAQ</a>
+                <a href="#contact" class="mobile-link bg-navy-900 text-white text-center px-4 py-3 rounded text-sm font-medium mt-2">Discuss Your AI Workflow</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-20">
+
+        <!-- 1. Hero Section -->
+        <section class="max-w-7xl mx-auto px-6 py-20 lg:py-32 grid lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-8">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-teal-50 thin-border border-teal-200 rounded-full text-teal-700 font-mono text-xs font-medium">
+                    <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+                    Controlled Agent Execution
+                </div>
+                <h1 class="text-4xl lg:text-5xl font-semibold leading-tight text-navy-900">
+                    Want an AI employee—but afraid it might break something important?
+                </h1>
+                <p class="text-lg text-slate-600 leading-relaxed max-w-xl">
+                    I engineer custom AI agents that can research, reason, use tools, and execute multi-step workflows—with explicit permissions, guardrails, human approval, and bounded execution built into the workflow.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <a href="#contact" class="bg-navy-900 text-white text-center px-6 py-3 rounded font-medium hover:bg-teal-700 transition-colors">
+                        Discuss Your AI Workflow
+                    </a>
+                    <a href="#projects" class="bg-white text-navy-900 text-center px-6 py-3 rounded font-medium thin-border hover:bg-slate-50 transition-colors">
+                        Explore the Architecture
+                    </a>
+                </div>
+                <p class="font-mono text-xs text-slate-500 pt-2 border-l-2 border-slate-300 pl-4">
+                    Automate meaningful work without treating unrestricted autonomy as a feature.
+                </p>
+            </div>
+
+            <!-- Hero Illustration: Node Graph UI -->
+            <div class="relative w-full aspect-square md:aspect-video lg:aspect-square bg-white thin-border rounded-xl shadow-sm p-6 overflow-hidden flex items-center justify-center">
+                <!-- Background grid pattern -->
+                <div class="absolute inset-0" style="background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px; opacity: 0.3;"></div>
+                
+                <!-- Graph Structure -->
+                <div class="relative w-full max-w-sm mx-auto h-[400px]">
+                    <!-- Lines -->
+                    <div class="node-line-v left-1/2 top-4 h-24 -ml-[0.5px]"></div>
+                    <div class="node-line-v left-1/4 top-32 h-16 -ml-[0.5px]"></div>
+                    <div class="node-line-v left-3/4 top-32 h-16 -ml-[0.5px]"></div>
+                    <div class="node-line-h left-1/4 right-1/4 top-32 -mt-[0.5px]"></div>
+                    <div class="node-line-v left-1/2 top-48 h-32 -ml-[0.5px]"></div>
+                    
+                    <!-- Nodes -->
+                    <div class="node-box absolute top-0 left-1/2 -translate-x-1/2 bg-white thin-border rounded px-4 py-2 font-mono text-xs shadow-sm text-slate-700 flex items-center gap-2">
+                        <i data-lucide="play-circle" class="w-3 h-3 text-slate-400"></i> Input State
+                    </div>
+
+                    <div class="node-box absolute top-24 left-1/2 -translate-x-1/2 bg-white thin-border rounded px-4 py-2 font-mono text-xs shadow-sm text-slate-700 flex items-center gap-2">
+                        <i data-lucide="search" class="w-3 h-3 text-teal-600"></i> Researcher
+                    </div>
+
+                    <div class="node-box absolute top-40 left-1/4 -translate-x-1/2 bg-white thin-border rounded px-4 py-2 font-mono text-xs shadow-sm text-slate-700 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-3 h-3 text-blue-600"></i> Analyst
+                    </div>
+
+                    <div class="node-box absolute top-40 left-3/4 -translate-x-1/2 bg-white thin-border rounded px-4 py-2 font-mono text-xs shadow-sm text-slate-700 flex items-center gap-2">
+                        <i data-lucide="microscope" class="w-3 h-3 text-purple-600"></i> Critic
+                    </div>
+
+                    <!-- Tool Execution -->
+                    <div class="node-box absolute top-64 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 rounded px-4 py-2 font-mono text-xs shadow-sm text-white flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-3 h-3 text-teal-400"></i> Tool: DB_Write
+                    </div>
+                </div> <!-- Close Graph Structure -->
+
+                <!-- Human Approval Overlay -->
+                <div id="approval-box" class="absolute bottom-6 right-6 md:bottom-8 md:right-8 lg:bottom-10 lg:right-10 bg-white thin-border border-amber-300 rounded-lg shadow-xl p-4 w-64 z-20 animate-fade-in-up transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-default group">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span id="approval-indicator" class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                        </span>
+                        <h3 id="approval-title" class="text-xs font-bold text-navy-900 uppercase tracking-wider transition-colors duration-300">Human Approval Required</h3>
+                    </div>
+                    <p class="font-mono text-[10px] text-slate-600 bg-slate-50 p-2 rounded mb-3 border border-slate-100 group-hover:border-slate-300 transition-colors">
+                        Action: <span class="text-teal-700 font-semibold">UPDATE production_db</span><br>
+                        Risk Level: <span class="text-amber-600 font-semibold">High</span>
+                    </p>
+                    <div id="approval-actions" class="flex gap-2 transition-opacity duration-300">
+                        <button id="btn-approve" class="flex-1 bg-teal-600 text-white text-[10px] font-medium py-1.5 rounded hover:bg-teal-700 active:scale-95 transition-all cursor-pointer shadow-sm">Approve</button>
+                        <button id="btn-reject" class="flex-1 bg-white text-slate-700 text-[10px] font-medium py-1.5 rounded border border-slate-300 hover:bg-slate-50 hover:text-red-600 active:scale-95 transition-all cursor-pointer shadow-sm">Reject</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Problem Section -->
+        <section id="problem" class="bg-white border-t border-slate-200 py-24">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="max-w-3xl mb-16">
+                    <h2 class="text-3xl font-semibold text-navy-900 mb-6">An AI agent should save you work—not create a new debugging job.</h2>
+                    <p class="text-slate-600 text-lg">
+                        You've connected an LLM to your tools. It can reason, call APIs, and execute actions. Then the edge cases begin. A better prompt isn't a complete solution to a control problem. The workflow itself needs engineering.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Card 1 -->
+                    <div class="p-8 thin-border rounded-lg bg-editorial">
+                        <div class="font-mono text-teal-600 text-sm mb-4">01.</div>
+                        <h3 class="text-lg font-medium text-navy-900 mb-3">The codebase problem</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            You asked an agent to fix one issue. It changed several files, introduced a regression, and confidently announced that it had finished. Now you're reviewing a mountain of diffs to understand what happened.
+                        </p>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="p-8 thin-border rounded-lg bg-editorial">
+                        <div class="font-mono text-teal-600 text-sm mb-4">02.</div>
+                        <h3 class="text-lg font-medium text-navy-900 mb-3">The endless retry problem</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            A tool fails. The agent tries again. The next attempt fails differently. Tokens, latency, and error messages accumulate while the workflow makes no meaningful progress.
+                        </p>
+                    </div>
+                    <!-- Card 3 -->
+                    <div class="p-8 thin-border rounded-lg bg-editorial">
+                        <div class="font-mono text-teal-600 text-sm mb-4">03.</div>
+                        <h3 class="text-lg font-medium text-navy-900 mb-3">The unintended-action problem</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Your agent has access to an API, inbox, database, or repository. One misunderstood instruction or malformed action can create consequences that a well-written system prompt alone cannot reliably prevent.
+                        </p>
+                    </div>
+                    <!-- Card 4 -->
+                    <div class="p-8 thin-border rounded-lg bg-editorial">
+                        <div class="font-mono text-teal-600 text-sm mb-4">04.</div>
+                        <h3 class="text-lg font-medium text-navy-900 mb-3">The visibility problem</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            The agent has finished—or stopped. But which tools did it call? What changed? Why did it choose that action? Should you trust the result?
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Outcomes Section -->
+        <section class="py-24 bg-navy-900 text-white">
+            <div class="max-w-7xl mx-auto px-6">
+                <h2 class="text-3xl font-semibold mb-16 max-w-2xl text-teal-50">Imagine automation you can inspect, constrain, and supervise.</h2>
+                
+                <div class="grid md:grid-cols-3 gap-12 border-t border-slate-700 pt-12">
+                    <div>
+                        <i data-lucide="shield-check" class="w-6 h-6 text-teal-400 mb-6"></i>
+                        <h3 class="text-lg font-medium mb-3">Let agents handle bounded tasks</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Delegate repetitive research, analysis, triage, and other structured work instead of manually coordinating every step. Separate read-only operations from consequential writes. Define tool permissions and validate inputs.
+                        </p>
+                    </div>
+                    <div>
+                        <i data-lucide="user-check" class="w-6 h-6 text-teal-400 mb-6"></i>
+                        <h3 class="text-lg font-medium mb-3">Keep humans responsible</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Pause before designated risky actions. Review the proposed operation, approve or reject it, and resume the workflow when appropriate. Consequential actions shouldn't happen blindly.
+                        </p>
+                    </div>
+                    <div>
+                        <i data-lucide="activity" class="w-6 h-6 text-teal-400 mb-6"></i>
+                        <h3 class="text-lg font-medium mb-3">Know what happened</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Trace execution, record relevant state transitions, inspect tool results, and use evaluations to identify weaknesses instead of blindly retrying.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-16 pt-8 border-t border-slate-700">
+                    <p class="font-mono text-xs text-slate-500">
+                        * The aim isn't to eliminate every possible failure. It's to reduce unnecessary risk, make failures easier to detect, and keep the system's behavior understandable.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Capabilities & Tech Stack -->
+        <section id="capabilities" class="py-24 bg-white border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="mb-16">
+                    <h2 class="text-3xl font-semibold text-navy-900 mb-4">Introducing custom AI agent engineering.</h2>
+                    <p class="text-slate-600 text-lg max-w-3xl">
+                        I design stateful AI workflows around your business process, available tools, risk tolerance, and definition of success. Every project starts with the workflow and its risks—not with the assumption that everything needs a multi-agent architecture.
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-12">
+                    <!-- Use Cases -->
+                    <div class="space-y-6">
+                        <div class="p-6 thin-border rounded-lg hover:border-teal-500 transition-colors">
+                            <h4 class="font-semibold text-navy-900 mb-2">01 — Codebase-aware engineering agents</h4>
+                            <p class="text-sm text-slate-600">Agents that inspect repositories, investigate errors, propose changes, and support code maintenance. Safeguards include scoped tools, approval checkpoints, and test gates.</p>
+                        </div>
+                        <div class="p-6 thin-border rounded-lg hover:border-teal-500 transition-colors">
+                            <h4 class="font-semibold text-navy-900 mb-2">02 — Research and analysis agents</h4>
+                            <p class="text-sm text-slate-600">Researcher–Analyst–Critic workflows that gather evidence, generate drafts, identify missing information, search again, and revise within a defined execution budget.</p>
+                        </div>
+                        <div class="p-6 thin-border rounded-lg hover:border-teal-500 transition-colors">
+                            <h4 class="font-semibold text-navy-900 mb-2">03 — Internal workflow and support agents</h4>
+                            <p class="text-sm text-slate-600">Agents that classify requests, summarize incidents, retrieve relevant information, and prepare responses—with approval gates when external actions are involved.</p>
+                        </div>
+                        <div class="p-6 thin-border rounded-lg hover:border-teal-500 transition-colors">
+                            <h4 class="font-semibold text-navy-900 mb-2">04 — Tool-connected business agents</h4>
+                            <p class="text-sm text-slate-600">Custom workflows that interact with APIs, databases, and internal applications through defined interfaces, validated inputs, and explicit action policies.</p>
+                        </div>
+                    </div>
+
+                    <!-- Tech Capabilities -->
+                    <div class="bg-editorial thin-border rounded-lg p-8 h-fit">
+                        <h3 class="text-lg font-medium text-navy-900 mb-6 flex items-center gap-2">
+                            <i data-lucide="cpu" class="w-5 h-5 text-teal-600"></i> The Engineering Stack
+                        </h3>
+                        <p class="text-sm text-slate-600 mb-6">
+                            Technology is the mechanism behind the business outcome, not the entire value proposition. We utilize specific frameworks to enforce boundaries and state.
+                        </p>
+                        <div class="flex flex-wrap gap-2 font-mono text-xs">
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">LangChain</span>
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">LangGraph</span>
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">ReAct</span>
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">Reflexion</span>
+                            <span class="bg-white thin-border border-teal-200 px-3 py-1.5 rounded text-teal-700 font-medium">Pydantic Structured Output</span>
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">Custom Tools</span>
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">Colang 2.0</span>
+                            <span class="bg-white thin-border border-teal-200 px-3 py-1.5 rounded text-teal-700 font-medium">HITL (Human-in-the-Loop)</span>
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">Checkpointing</span>
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">Context Engineering</span>
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">Async Python</span>
+                            <span class="bg-white thin-border px-3 py-1.5 rounded text-slate-700">RAGAS</span>
+                            <span class="bg-white thin-border border-slate-400 px-3 py-1.5 rounded text-slate-800">LangSmith / AgentOps</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Engineering Approach -->
+        <section class="py-24 bg-editorial border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-semibold text-navy-900 mb-4">From idea to an engineered workflow.</h2>
+                    <p class="text-slate-600 text-lg max-w-2xl mx-auto">
+                        The deliverable is a defined, testable agent workflow—not simply a prompt wrapped around an LLM.
+                    </p>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between items-start gap-8 relative">
+                    <!-- Connecting line for desktop -->
+                    <div class="hidden md:block absolute top-12 left-10 right-10 h-px bg-slate-300 z-0"></div>
+                    
+                    <!-- Step 1 -->
+                    <div class="flex-1 relative z-10 bg-white p-8 thin-border rounded-xl shadow-sm text-center md:text-left">
+                        <div class="w-10 h-10 bg-navy-900 text-white rounded-full flex items-center justify-center font-mono font-bold mx-auto md:mx-0 mb-6 border-4 border-editorial">1</div>
+                        <h3 class="font-semibold text-navy-900 mb-3">Map the task & risk</h3>
+                        <p class="text-sm text-slate-600">Identify the repetitive task, inputs/outputs, system access requirements, acceptable failure modes, and actions that mandate approval.</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex-1 relative z-10 bg-white p-8 thin-border rounded-xl shadow-sm text-center md:text-left">
+                        <div class="w-10 h-10 bg-teal-600 text-white rounded-full flex items-center justify-center font-mono font-bold mx-auto md:mx-0 mb-6 border-4 border-editorial">2</div>
+                        <h3 class="font-semibold text-navy-900 mb-3">Engineer the boundaries</h3>
+                        <p class="text-sm text-slate-600">Translate the task into an explicit execution architecture: state, tools, routing, validation, and human checkpoints (HITL).</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex-1 relative z-10 bg-white p-8 thin-border rounded-xl shadow-sm text-center md:text-left">
+                        <div class="w-10 h-10 bg-navy-900 text-white rounded-full flex items-center justify-center font-mono font-bold mx-auto md:mx-0 mb-6 border-4 border-editorial">3</div>
+                        <h3 class="font-semibold text-navy-900 mb-3">Test & Refine</h3>
+                        <p class="text-sm text-slate-600">Examine failure cases, malformed inputs, excessive retries, and risky actions using execution tracing to improve the workflow loop.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Featured Project: Aura -->
+        <section id="projects" class="py-24 bg-white border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="bg-navy-900 rounded-2xl overflow-hidden shadow-lg">
+                    <div class="grid lg:grid-cols-2">
+                        <div class="p-10 lg:p-16 text-white flex flex-col justify-center">
+                            <div class="inline-flex items-center gap-2 mb-6">
+                                <span class="px-2 py-1 bg-slate-800 text-teal-400 font-mono text-[10px] uppercase rounded border border-slate-700">Featured Project</span>
+                            </div>
+                            <h2 class="text-3xl font-semibold mb-4">Aura</h2>
+                            <h3 class="text-xl text-teal-50 mb-6 font-light">Reflexive Multi-Agent Financial Research Desk</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed mb-8">
+                                Aura is a portfolio project exploring how multiple specialized agents can collaborate on evidence-based financial research while retaining explicit execution boundaries. The architecture utilizes a bounded revision loop directing research, drafting, and critique—ending in a mandatory human-approval boundary before publication.
+                            </p>
+                            
+                            <div class="font-mono text-xs text-slate-400 mb-8 space-y-2 border-l-2 border-slate-700 pl-4">
+                                <p><span class="text-teal-400">Concepts:</span> LangGraph orchestration, state management, structured outputs, Reflexion, revision budgets, observability.</p>
+                                <p class="italic opacity-70">* Note: Aura is a work in progress. Human-approval and production-control components are currently in development.</p>
+                            </div>
+
+                            <div class="flex flex-wrap gap-4">
+                                <!-- Placeholders clearly marked as per prompt -->
+                                <button class="px-5 py-2.5 bg-slate-800 text-slate-400 rounded text-sm font-medium thin-border border-slate-700 cursor-not-allowed flex items-center gap-2" disabled>
+                                    <i data-lucide="github" class="w-4 h-4"></i> GitHub Repo (Coming Soon)
+                                </button>
+                                <button class="px-5 py-2.5 bg-slate-800 text-slate-400 rounded text-sm font-medium thin-border border-slate-700 cursor-not-allowed flex items-center gap-2" disabled>
+                                    <i data-lucide="play" class="w-4 h-4"></i> Demo Video (Coming Soon)
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Visual representation of flow -->
+                        <div class="bg-slate-800 p-10 flex items-center justify-center border-l border-slate-700 relative overflow-hidden">
+                            <!-- Code-like background decorative -->
+                            <pre class="absolute inset-0 p-4 text-[8px] text-slate-700 font-mono opacity-50 select-none overflow-hidden">
+def aura_workflow(state: ResearchState):
+    if not state.approved:
+        return "human_review"
+    return END
+
+graph = StateGraph(ResearchState)
+graph.add_node("researcher", ResearcherNode())
+graph.add_node("analyst", AnalystNode())
+graph.add_node("critic", CriticNode())
+                            </pre>
+                            
+                            <div class="relative z-10 w-full max-w-sm space-y-4 font-mono text-xs">
+                                <div class="bg-slate-900 border border-slate-600 rounded p-4 text-slate-300 flex items-center justify-between shadow-lg">
+                                    <span>1. Researcher</span>
+                                    <i data-lucide="search" class="w-4 h-4 text-slate-500"></i>
+                                </div>
+                                <div class="w-px h-6 bg-slate-600 mx-auto"></div>
+                                <div class="bg-slate-900 border border-slate-600 rounded p-4 text-slate-300 flex items-center justify-between shadow-lg">
+                                    <span>2. Analyst (Draft Thesis)</span>
+                                    <i data-lucide="pen-tool" class="w-4 h-4 text-slate-500"></i>
+                                </div>
+                                <div class="w-px h-6 bg-slate-600 mx-auto"></div>
+                                <div class="bg-slate-900 border border-slate-600 rounded p-4 text-slate-300 flex items-center justify-between shadow-lg relative">
+                                    <span>3. Critic (Feedback)</span>
+                                    <i data-lucide="message-square" class="w-4 h-4 text-slate-500"></i>
+                                    <!-- Loop back line -->
+                                    <div class="absolute -left-6 top-1/2 -mt-[0.5px] w-6 h-px bg-teal-500"></div>
+                                    <div class="absolute -left-6 top-[-82px] h-[calc(50%+82px)] w-px bg-teal-500"></div>
+                                    <div class="absolute -left-6 top-[-82px] w-6 h-px bg-teal-500"></div>
+                                    <!-- Arrowhead pointing into Analyst Node -->
+                                    <div class="absolute left-[-2px] top-[-86px] border-[4px] border-transparent border-l-teal-500"></div>
+                                    <!-- Properly positioned text left of the line -->
+                                    <div class="absolute right-[calc(100%+32px)] top-[-34px] text-[10px] text-teal-400 whitespace-nowrap">Revision Loop</div>
+                                </div>
+                                <div class="w-px h-6 bg-slate-600 mx-auto"></div>
+                                <div class="bg-teal-900 border border-teal-500 rounded p-4 text-teal-100 flex items-center justify-between shadow-lg">
+                                    <span>4. Human Approval</span>
+                                    <i data-lucide="shield-check" class="w-4 h-4 text-teal-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Offer / Contact Section -->
+        <section id="contact" class="py-24 bg-editorial">
+            <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16">
+                <div>
+                    <h2 class="text-3xl font-semibold text-navy-900 mb-6">Start with one workflow.</h2>
+                    <p class="text-slate-600 mb-8">
+                        You don't need to automate the entire business on day one. Start with one repeatable task, define what the agent can and cannot do, and build toward greater autonomy only where the workflow justifies it.
+                    </p>
+                    
+                    <h3 class="font-semibold text-navy-900 mb-4">Initial Project Scope typically includes:</h3>
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-teal-600 shrink-0"></i>
+                            <span class="text-sm text-slate-600">Workflow and risk mapping.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-teal-600 shrink-0"></i>
+                            <span class="text-sm text-slate-600">A defined agent architecture.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-teal-600 shrink-0"></i>
+                            <span class="text-sm text-slate-600">Relevant tool integrations.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-teal-600 shrink-0"></i>
+                            <span class="text-sm text-slate-600">Appropriate guardrails and approval gates.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-teal-600 shrink-0"></i>
+                            <span class="text-sm text-slate-600">Test scenarios and execution tracing.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-teal-600 shrink-0"></i>
+                            <span class="text-sm text-slate-600">Technical handover and next-step recommendations.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Functional Contact Form -->
+                <div class="bg-white p-8 thin-border rounded-xl shadow-sm">
+                    <h3 class="text-xl font-semibold text-navy-900 mb-6">Discuss Your AI Workflow</h3>
+                    
+                    <form id="workflow-form" class="space-y-5" novalidate>
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-navy-900 mb-1">Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="name" name="name" required class="w-full px-4 py-2 thin-border rounded bg-editorial focus:bg-white transition-colors" placeholder="Jane Doe">
+                            <span class="text-xs text-red-500 hidden mt-1" id="name-error">Please enter your name.</span>
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-navy-900 mb-1">Email <span class="text-red-500">*</span></label>
+                            <input type="email" id="email" name="email" required class="w-full px-4 py-2 thin-border rounded bg-editorial focus:bg-white transition-colors" placeholder="jane@company.com">
+                            <span class="text-xs text-red-500 hidden mt-1" id="email-error">Please enter a valid email.</span>
+                        </div>
+
+                        <div>
+                            <label for="task" class="block text-sm font-medium text-navy-900 mb-1">What task do you want to automate? <span class="text-red-500">*</span></label>
+                            <textarea id="task" name="task" rows="3" required class="w-full px-4 py-2 thin-border rounded bg-editorial focus:bg-white transition-colors" placeholder="e.g., Categorizing and replying to tier-1 support tickets..."></textarea>
+                            <span class="text-xs text-red-500 hidden mt-1" id="task-error">Please describe the task.</span>
+                        </div>
+
+                        <div>
+                            <label for="tools" class="block text-sm font-medium text-navy-900 mb-1">Which tools or systems does the agent need? <span class="text-red-500">*</span></label>
+                            <input type="text" id="tools" name="tools" required class="w-full px-4 py-2 thin-border rounded bg-editorial focus:bg-white transition-colors" placeholder="e.g., Zendesk API, Internal Wiki, Slack">
+                            <span class="text-xs text-red-500 hidden mt-1" id="tools-error">Please list the necessary tools.</span>
+                        </div>
+
+                        <div>
+                            <label for="risk" class="block text-sm font-medium text-navy-900 mb-1">What action or failure are you most concerned about? <span class="text-red-500">*</span></label>
+                            <input type="text" id="risk" name="risk" required class="w-full px-4 py-2 thin-border rounded bg-editorial focus:bg-white transition-colors" placeholder="e.g., Sending an incorrect resolution to a VIP client">
+                            <span class="text-xs text-red-500 hidden mt-1" id="risk-error">Please identify your primary concern.</span>
+                        </div>
+
+                        <button type="submit" class="w-full bg-navy-900 text-white font-medium py-3 rounded hover:bg-teal-700 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-navy-900">
+                            Submit via Email Client
+                        </button>
+                        <p class="text-xs text-slate-500 text-center mt-3">
+                            This will securely open your default email client with your requirements pre-formatted.
+                        </p>
+                    </form>
+
+                    <!-- Success / Processing Message -->
+                    <div id="form-success" class="hidden text-center py-12">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-teal-100 text-teal-600 mb-4">
+                            <i data-lucide="mail-check"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold text-navy-900 mb-2">Preparing your email...</h4>
+                        <p class="text-sm text-slate-600">Your default email client should open shortly. If it doesn't, you can email me directly at <a href="mailto:gupta.akhil.work@gmail.com" class="text-teal-600 hover:underline font-medium">gupta.akhil.work@gmail.com</a>.</p>
+                        <button id="reset-form" class="mt-6 text-sm text-navy-900 underline font-medium hover:text-teal-600">Submit another workflow</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. FAQ Section -->
+        <section id="faq" class="py-24 bg-white border-b border-slate-200">
+            <div class="max-w-4xl mx-auto px-6">
+                <h2 class="text-3xl font-semibold text-navy-900 mb-10 text-center">Frequently Asked Questions</h2>
+                
+                <div class="space-y-4">
+                    <!-- FAQ 1 -->
+                    <details class="group bg-editorial thin-border rounded-lg [&_summary::-webkit-details-marker]:hidden">
+                        <summary class="flex cursor-pointer items-center justify-between p-6 font-medium text-navy-900">
+                            <span>Can you guarantee that an AI agent will never break something?</span>
+                            <span class="transition group-open:rotate-180 text-teal-600">
+                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                            </span>
+                        </summary>
+                        <div class="px-6 pb-6 text-slate-600 text-sm leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                            No responsible engineer should guarantee that for a non-trivial agent. The design goal is to limit available actions, control permissions, validate operations, constrain retries, and introduce appropriate review, testing, and recovery mechanisms.
+                        </div>
+                    </details>
+                    
+                    <!-- FAQ 2 -->
+                    <details class="group bg-editorial thin-border rounded-lg [&_summary::-webkit-details-marker]:hidden">
+                        <summary class="flex cursor-pointer items-center justify-between p-6 font-medium text-navy-900">
+                            <span>Does every workflow need multiple agents?</span>
+                            <span class="transition group-open:rotate-180 text-teal-600">
+                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                            </span>
+                        </summary>
+                        <div class="px-6 pb-6 text-slate-600 text-sm leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                            No. A deterministic workflow or a single tool-using agent may be simpler, cheaper, and easier to test. Multiple agents make sense when separate roles or decision processes offer a concrete benefit.
+                        </div>
+                    </details>
+
+                    <!-- FAQ 3 -->
+                    <details class="group bg-editorial thin-border rounded-lg [&_summary::-webkit-details-marker]:hidden">
+                        <summary class="flex cursor-pointer items-center justify-between p-6 font-medium text-navy-900">
+                            <span>Will the agent require my approval for every action?</span>
+                            <span class="transition group-open:rotate-180 text-teal-600">
+                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                            </span>
+                        </summary>
+                        <div class="px-6 pb-6 text-slate-600 text-sm leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                            Not necessarily. The approval policy should reflect the risk of each action. Routine, reversible operations may be automated, while selected writes, external messages, or consequential changes can require explicit approval.
+                        </div>
+                    </details>
+
+                    <!-- FAQ 4 -->
+                    <details class="group bg-editorial thin-border rounded-lg [&_summary::-webkit-details-marker]:hidden">
+                        <summary class="flex cursor-pointer items-center justify-between p-6 font-medium text-navy-900">
+                            <span>Can the agent use my existing tools and APIs?</span>
+                            <span class="transition group-open:rotate-180 text-teal-600">
+                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                            </span>
+                        </summary>
+                        <div class="px-6 pb-6 text-slate-600 text-sm leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                            That depends on the available interfaces, authentication, permissions, and integration requirements. The first step is to map those dependencies and determine which capabilities can be exposed safely.
+                        </div>
+                    </details>
+
+                    <!-- FAQ 5 -->
+                    <details class="group bg-editorial thin-border rounded-lg [&_summary::-webkit-details-marker]:hidden">
+                        <summary class="flex cursor-pointer items-center justify-between p-6 font-medium text-navy-900">
+                            <span>How do you evaluate whether an agent works?</span>
+                            <span class="transition group-open:rotate-180 text-teal-600">
+                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                            </span>
+                        </summary>
+                        <div class="px-6 pb-6 text-slate-600 text-sm leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                            Evaluation should match the task. Depending on the workflow, we can examine task completion, tool-call validity, factual support, failure recovery, latency, cost, and whether the agent followed its action boundaries.
+                        </div>
+                    </details>
+
+                    <!-- FAQ 6 -->
+                    <details class="group bg-editorial thin-border rounded-lg [&_summary::-webkit-details-marker]:hidden">
+                        <summary class="flex cursor-pointer items-center justify-between p-6 font-medium text-navy-900">
+                            <span>Do I need an existing AI agent?</span>
+                            <span class="transition group-open:rotate-180 text-teal-600">
+                                <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                            </span>
+                        </summary>
+                        <div class="px-6 pb-6 text-slate-600 text-sm leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                            No. We can start by identifying one suitable workflow and deciding whether an agent is actually the right solution.
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Final CTA -->
+        <section class="py-24 bg-navy-900 text-white text-center">
+            <div class="max-w-3xl mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-semibold mb-6">Give your AI agent a job—not unlimited authority.</h2>
+                <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
+                    Tell me what you want to automate, which tools the agent needs, and what it must never do. We'll start by defining the workflow and the appropriate boundaries.
+                </p>
+                <a href="#contact" class="inline-block bg-teal-600 text-white font-medium px-8 py-4 rounded hover:bg-teal-500 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-offset-navy-900 focus:ring-teal-500">
+                    Discuss Your AI Workflow
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-navy-800 text-slate-400 py-12 border-t border-slate-700">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <p class="font-semibold text-white mb-2">Akhil — AI Agent Engineering</p>
+                <p class="text-xs max-w-md text-slate-500">
+                    Custom agent workflows designed around controlled execution, appropriate human oversight, and observable behavior. <br><br>
+                    <span class="italic">AI systems can fail. Safeguards are designed to reduce and manage risk; they do not eliminate it.</span>
+                </p>
+            </div>
+            
+            <div class="flex gap-6">
+                <a href="https://www.linkedin.com/in/akhildot/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors" aria-label="LinkedIn">
+                    <i data-lucide="linkedin" class="w-5 h-5"></i>
+                </a>
+                <a href="https://github.com/ITS-AKHIL" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors" aria-label="GitHub">
+                    <i data-lucide="github" class="w-5 h-5"></i>
+                </a>
+                <a href="mailto:gupta.akhil.work@gmail.com" class="hover:text-white transition-colors" aria-label="Email">
+                    <i data-lucide="mail" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Mobile Menu Toggle
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.add('hidden');
+            });
+        });
+
+        // Form Validation & Mailto Fallback
+        const form = document.getElementById('workflow-form');
+        const successMsg = document.getElementById('form-success');
+        const resetBtn = document.getElementById('reset-form');
+
+        // Target Email address
+        const targetEmail = 'gupta.akhil.work@gmail.com';
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let isValid = true;
+            
+            const fields = ['name', 'email', 'task', 'tools', 'risk'];
+            const data = {};
+
+            fields.forEach(field => {
+                const el = document.getElementById(field);
+                const error = document.getElementById(`${field}-error`);
+                data[field] = el.value.trim();
+
+                if (!data[field] || (field === 'email' && !/^\S+@\S+\.\S+$/.test(data[field]))) {
+                    isValid = false;
+                    el.classList.add('border-red-500', 'focus:ring-red-500');
+                    error.classList.remove('hidden');
+                } else {
+                    el.classList.remove('border-red-500', 'focus:ring-red-500');
+                    error.classList.add('hidden');
+                }
+            });
+
+            if (isValid) {
+                // Construct mailto link
+                const subject = encodeURIComponent(`AI Workflow Inquiry from ${data.name}`);
+                const body = encodeURIComponent(`Hello,\n\nI am interested in discussing a custom AI workflow.\n\n--- Details ---\nName: ${data.name}\nEmail: ${data.email}\n\nTask to automate:\n${data.task}\n\nTools involved:\n${data.tools}\n\nBiggest risk/concern:\n${data.risk}\n\n-----------------\n\nBest regards,\n${data.name}`);
+                
+                const mailtoLink = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
+                
+                // Show success UI
+                form.classList.add('hidden');
+                successMsg.classList.remove('hidden');
+
+                // Trigger email client
+                window.location.href = mailtoLink;
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            form.reset();
+            form.classList.remove('hidden');
+            successMsg.classList.add('hidden');
+        });
+
+        // Interactive Human Approval Box logic
+        const approvalBox = document.getElementById('approval-box');
+        const btnApprove = document.getElementById('btn-approve');
+        const btnReject = document.getElementById('btn-reject');
+        const approvalTitle = document.getElementById('approval-title');
+        const approvalIndicator = document.getElementById('approval-indicator');
+        const approvalActions = document.getElementById('approval-actions');
+
+        function handleApproval(action) {
+            // Visual feedback based on action
+            if (action === 'approve') {
+                approvalTitle.textContent = 'Action Approved';
+                approvalTitle.classList.replace('text-navy-900', 'text-teal-700');
+                approvalIndicator.innerHTML = '<span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>'; 
+                approvalBox.classList.replace('border-amber-300', 'border-teal-400');
+            } else {
+                approvalTitle.textContent = 'Action Rejected';
+                approvalTitle.classList.replace('text-navy-900', 'text-red-600');
+                approvalIndicator.innerHTML = '<span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>'; 
+                approvalBox.classList.replace('border-amber-300', 'border-red-400');
+            }
+            
+            // Disable & fade actions temporarily
+            approvalActions.classList.add('opacity-40', 'pointer-events-none');
+
+            // Reset after 3 seconds for demo purposes
+            setTimeout(() => {
+                approvalTitle.textContent = 'Human Approval Required';
+                approvalTitle.classList.remove('text-teal-700', 'text-red-600');
+                approvalTitle.classList.add('text-navy-900');
+                approvalIndicator.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>';
+                approvalBox.classList.remove('border-teal-400', 'border-red-400');
+                approvalBox.classList.add('border-amber-300');
+                
+                approvalActions.classList.remove('opacity-40', 'pointer-events-none');
+            }, 3000);
+        }
+
+        if (btnApprove && btnReject) {
+            btnApprove.addEventListener('click', () => handleApproval('approve'));
+            btnReject.addEventListener('click', () => handleApproval('reject'));
+        }
+    </script>
+</body>
+</html>
